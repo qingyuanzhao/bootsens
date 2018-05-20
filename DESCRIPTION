@@ -1,8 +1,8 @@
 Package: bootsens
 Type: Package
 Title: Bootstrapping sensitivity analysis
-Version: 0.3
-Date: 2018-05-01
+Version: 0.1
+Date: 2018-05-20
 Authors@R: c(person("Qingyuan", "Zhao", email = "qingyzhao@gmail.com", role = c("aut", "cre")))
 Description: Implements a percentile bootstrap approach for sensitivity analysis of IPW estimators.
 Imports:
