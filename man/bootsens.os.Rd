@@ -2,10 +2,14 @@
 % Please edit documentation in R/ipw.R
 \name{bootsens.os}
 \alias{bootsens.os}
+\alias{extrema.os}
 \title{Sensitivity analysis for observational studies}
 \usage{
 bootsens.os(A, X, Y, gamma = 0, alpha = 0.05, estimand = c("ate", "att"),
   reg.adjust = FALSE, parallel = TRUE, B = 1000, warm.start = FALSE)
+
+extrema.os(A, X, Y, gamma = 0, estimand = c("ate", "att"),
+  reg.adjust = FALSE, start = NULL)
 }
 \arguments{
 \item{A}{Indicator of missingness}
@@ -27,13 +31,22 @@ bootsens.os(A, X, Y, gamma = 0, alpha = 0.05, estimand = c("ate", "att"),
 \item{B}{Number of Bootstrap resamples.}
 
 \item{warm.start}{Warm start the refitting of propensity score model (doesn't seem to help).}
+
+\item{start}{Starting values for the propensity score model to warm start \code{glm}.}
 }
 \value{
 A (1 - alpha) confidence interval.
+
+Extrema (an interval).
 }
 \description{
 Sensitivity analysis for observational studies
 }
+\section{Functions}{
+\itemize{
+\item \code{extrema.os}: Obtain extrema of IPW estimator for observational studies
+}}
+
 \examples{
 
 \donttest{

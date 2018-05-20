@@ -47,66 +47,6 @@ get.extrema <- function(A, X, Y, gamma = 0, fitted.prob, estimand = c("all", "mi
 
 }
 
-#' Obtain extrema of IPW estimator for missing data
-#'
-#' @inheritParams get.extrema
-#' @param reg.adjust Should regression adjustment (augmented IPW) be used?
-#' @param start Starting values for the propensity score model to warm start \code{glm}.
-#'
-#' @return Extrema (an interval).
-#'
-#' @import stats
-#' @export
-#'
-extrema.md <- function(A, X, Y, gamma = 0, estimand = c("all", "missing"), reg.adjust = FALSE, start = NULL) {
-
-    estimand <- match.arg(estimand, c("all", "missing"))
-    ps.model <- glm(A ~ X, family = "binomial", start = start)
-    fitted.prob <- predict(ps.model, type = "response")
-    if (reg.adjust) {
-        df <- data.frame(Y = Y, X = X)
-        or.model <- lm(Y ~ ., df[A == 1, ])
-        Y.fitted <- predict(or.model, df)
-    } else {
-        Y.fitted <- rep(0, length(Y))
-    }
-
-    out <- get.extrema(A, X, Y - Y.fitted, gamma, fitted.prob, estimand)
-    out <- out + switch(estimand, all = mean(Y.fitted), missing = mean(Y.fitted[A == 0]))
-
-}
-
-#' Obtain extrema of IPW estimator for observational studies
-#'
-#' @inheritParams extrema.md
-#' @param estimand Either "ate" (average treatment effect) or "att" (average treatment effect on the treated)
-#'
-#' @return Extrema (an interval).
-#'
-#' @import stats
-#' @export
-#'
-extrema.os <- function(A, X, Y, gamma = 0, estimand = c("ate", "att"), reg.adjust = FALSE, start = NULL) {
-
-    estimand <- match.arg(estimand, c("ate", "att"))
-
-    if (estimand == "att") {
-        if (!is.null(start)) {
-            mean(Y[A == 1]) - rev(extrema.md(1 - A, X, Y, gamma, "missing", reg.adjust, - start))
-        } else {
-            mean(Y[A == 1]) - rev(extrema.md(1 - A, X, Y, gamma, "missing", reg.adjust))
-        }
-    } else { ## estimand == "ate"
-        if (!is.null(start)) {
-            extrema.md(A, X, Y, gamma, "all", reg.adjust, start) - rev(extrema.md(1 - A, X, Y, gamma, "all", reg.adjust, - start))
-        } else {
-            extrema.md(A, X, Y, gamma, "all", reg.adjust) - rev(extrema.md(1 - A, X, Y, gamma, "all", reg.adjust))
-        }
-    }
-
-}
-
-
 #' Sensitivity analysis for missing data
 #'
 #' @inheritParams extrema.md
@@ -146,8 +86,11 @@ bootsens.md <- function(A, X, Y, gamma = 0, alpha = 0.05, estimand = c("all", "m
 
 #' Sensitivity analysis for observational studies
 #'
-#' @inheritParams bootsens.md
-#' @param estimand Either "ate" (average treatment effect) or "att" (average treatment effect on the treated)
+#' @inheritParams extrema.os
+#' @param alpha Significance level
+#' @param parallel Should parallel computing be used?
+#' @param B Number of Bootstrap resamples.
+#' @param warm.start Warm start the refitting of propensity score model (doesn't seem to help).
 #'
 #' @return A (1 - alpha) confidence interval.
 #'
@@ -198,5 +141,65 @@ bootsens.os <- function(A, X, Y, gamma = 0, alpha = 0.05, estimand = c("ate", "a
     out <- do.call(rbind, out)
 
     c(quantile(out[, 1], alpha / 2, na.rm = TRUE), quantile(out[, 2], 1 - alpha / 2, na.rm = TRUE))
+
+}
+
+
+#' @describeIn bootsens.md Obtain extrema of IPW estimator for missing data
+#'
+#' @inheritParams get.extrema
+#' @param reg.adjust Should regression adjustment (augmented IPW) be used?
+#' @param start Starting values for the propensity score model to warm start \code{glm}.
+#'
+#' @return Extrema (an interval).
+#'
+#' @import stats
+#' @export
+#'
+extrema.md <- function(A, X, Y, gamma = 0, estimand = c("all", "missing"), reg.adjust = FALSE, start = NULL) {
+
+    estimand <- match.arg(estimand, c("all", "missing"))
+    ps.model <- glm(A ~ X, family = "binomial", start = start)
+    fitted.prob <- predict(ps.model, type = "response")
+    if (reg.adjust) {
+        df <- data.frame(Y = Y, X = X)
+        or.model <- lm(Y ~ ., df[A == 1, ])
+        Y.fitted <- predict(or.model, df)
+    } else {
+        Y.fitted <- rep(0, length(Y))
+    }
+
+    out <- get.extrema(A, X, Y - Y.fitted, gamma, fitted.prob, estimand)
+    out <- out + switch(estimand, all = mean(Y.fitted), missing = mean(Y.fitted[A == 0]))
+
+}
+
+#' @describeIn bootsens.os Obtain extrema of IPW estimator for observational studies
+#'
+#' @param estimand Either "ate" (average treatment effect) or "att" (average treatment effect on the treated)
+#' @inheritParams extrema.md
+#'
+#' @return Extrema (an interval).
+#'
+#' @import stats
+#' @export
+#'
+extrema.os <- function(A, X, Y, gamma = 0, estimand = c("ate", "att"), reg.adjust = FALSE, start = NULL) {
+
+    estimand <- match.arg(estimand, c("ate", "att"))
+
+    if (estimand == "att") {
+        if (!is.null(start)) {
+            mean(Y[A == 1]) - rev(extrema.md(1 - A, X, Y, gamma, "missing", reg.adjust, - start))
+        } else {
+            mean(Y[A == 1]) - rev(extrema.md(1 - A, X, Y, gamma, "missing", reg.adjust))
+        }
+    } else { ## estimand == "ate"
+        if (!is.null(start)) {
+            extrema.md(A, X, Y, gamma, "all", reg.adjust, start) - rev(extrema.md(1 - A, X, Y, gamma, "all", reg.adjust, - start))
+        } else {
+            extrema.md(A, X, Y, gamma, "all", reg.adjust) - rev(extrema.md(1 - A, X, Y, gamma, "all", reg.adjust))
+        }
+    }
 
 }

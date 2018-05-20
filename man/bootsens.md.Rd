@@ -2,11 +2,15 @@
 % Please edit documentation in R/ipw.R
 \name{bootsens.md}
 \alias{bootsens.md}
+\alias{extrema.md}
 \title{Sensitivity analysis for missing data}
 \usage{
 bootsens.md(A, X, Y, gamma = 0, alpha = 0.05, estimand = c("all",
   "missing"), reg.adjust = FALSE, parallel = TRUE, B = 1000,
   warm.start = FALSE)
+
+extrema.md(A, X, Y, gamma = 0, estimand = c("all", "missing"),
+  reg.adjust = FALSE, start = NULL)
 }
 \arguments{
 \item{A}{Indicator of missingness}
@@ -28,10 +32,19 @@ bootsens.md(A, X, Y, gamma = 0, alpha = 0.05, estimand = c("all",
 \item{B}{Number of Bootstrap resamples.}
 
 \item{warm.start}{Warm start the refitting of propensity score model (doesn't seem to help).}
+
+\item{start}{Starting values for the propensity score model to warm start \code{glm}.}
 }
 \value{
 A (1 - alpha) confidence interval.
+
+Extrema (an interval).
 }
 \description{
 Sensitivity analysis for missing data
 }
+\section{Functions}{
+\itemize{
+\item \code{extrema.md}: Obtain extrema of IPW estimator for missing data
+}}
+
