@@ -8,7 +8,7 @@ install_github("qingyuanzhao/bootsens")
 
 Examples for sensitivity analysis of observational studies.
 ```
-library(mr.raps)
+library(bootsens)
 example(bootsens.os)
 ```
 
