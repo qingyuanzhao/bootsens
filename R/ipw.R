@@ -110,13 +110,17 @@ bootsens.md <- function(A, X, Y, gamma = 0, alpha = 0.05, estimand = c("all", "m
 #' X1 <- model.matrix(~ . - 1, X)
 #' Y <- log2(nhanes.fish$o.LBXTHG)
 #'
-#' ## Assuming no unmeasure confounder (i.e. gamma = 0)
+#' ## Assuming no unmeasure confounder (i.e. gamma = 0 or Gamma = e^0 = 1)
 #' extrema.os(A, X1, Y) # point estimate
 #' bootsens.os(A, X1, Y) # confidence interval
 #'
-#' ## Sensitivity analysis (gamma = 1)
+#' ## Sensitivity analysis (gamma = 1, i.e. Gamma = e^1)
 #' extrema.os(A, X1, Y, gamma = 1) # point estimate
 #' bootsens.os(A, X1, Y, gamma = 1) # confidence interval
+#'
+#' ## Sensitivity analysis using regression adjustment (gamma = 1, i.e. Gamma = e^1)
+#' extrema.os(A, X1, Y, gamma = 1, reg.adjust = TRUE) # point estimate
+#' bootsens.os(A, X1, Y, gamma = 1, reg.adjust = TRUE) # confidence interval
 #' }
 #'
 bootsens.os <- function(A, X, Y, gamma = 0, alpha = 0.05, estimand = c("ate", "att"), reg.adjust = FALSE, parallel = TRUE, B = 1000, warm.start = FALSE) {
