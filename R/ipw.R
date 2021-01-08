@@ -7,9 +7,11 @@
 #' @param gamma Sensitivity parameter (log odds ratio)
 #' @param fitted.prob Fitted propensity score
 #' @param estimand Target estimand, either E[Y] ("all") or E[Y|A=0] ("missing")
+#' @param discrete Are the data (both X and Y) discrete?
 #'
 #' @return Extrema (an interval) of the IPW estimator.
 #'
+#' @import data.table
 #' @export
 #'
 get.extrema <- function(A, X, Y, gamma = 0, fitted.prob, estimand = c("all", "missing")) {
@@ -17,21 +19,35 @@ get.extrema <- function(A, X, Y, gamma = 0, fitted.prob, estimand = c("all", "mi
     estimand <- match.arg(estimand, c("all", "missing"))
     c <- as.numeric(estimand == "all")
 
+    ## if (discrete) {
+    ##     data <- data.table(A, X, Y, fitted.prob)
+    ##     setkeyv(data, setdiff(names(data), "fitted.prob"))
+    ##     data <- data[, list(m = length(fitted.prob),
+    ##                         fitted.prob = fitted.prob[1]), key(data)]
+    ##     A <- data$A * data$m
+    ##     Y <- data$Y
+    ##     fitted.prob <- data$fitted.prob
+    ## }
+
     fitted.logit <- qlogis(fitted.prob)
 
     eg <- exp(-fitted.logit)
-    Y <- Y[A == 1]
-    eg <- eg[A == 1]
+
+    eg <- eg[A != 0]
+    Y <- Y[A != 0]
+    A <- A[A != 0]
+
     eg <- eg[order(-Y)]
+    A <- A[order(-Y)]
     Y <- Y[order(-Y)]
 
     ## maximization
-    num.each.low <- Y * (c + exp(-gamma) * eg)
-    num.each.up <- Y * (c + exp(gamma) * eg)
+    num.each.low <- A * Y * (c + exp(-gamma) * eg)
+    num.each.up <- A * Y * (c + exp(gamma) * eg)
     num <- c(0, cumsum(num.each.up)) + c(rev(cumsum(rev(num.each.low))), 0)
 
-    den.each.low <- (c + exp(-gamma) * eg)
-    den.each.up <- (c + exp(gamma) * eg)
+    den.each.low <- A * (c + exp(-gamma) * eg)
+    den.each.up <- A * (c + exp(gamma) * eg)
     den <- c(0, cumsum(den.each.up)) + c(rev(cumsum(rev(den.each.low))), 0)
 
     maximum <- max(num / den)
@@ -64,7 +80,7 @@ bootsens.md <- function(A, X, Y, gamma = 0, alpha = 0.05, estimand = c("all", "m
 
     estimand <- match.arg(estimand, c("all", "missing"))
 
-    no.cores <- ifelse(parallel, detectCores(), 1)
+    no.cores <- max(1, ifelse(parallel, detectCores(), 1))
     n <- length(A)
 
     if (warm.start) {
@@ -112,18 +128,23 @@ bootsens.md <- function(A, X, Y, gamma = 0, alpha = 0.05, estimand = c("all", "m
 #'
 #' ## Assuming no unmeasure confounder (i.e. gamma = 0 or Gamma = e^0 = 1)
 #' extrema.os(A, X1, Y) # point estimate
-#' bootsens.os(A, X1, Y) # confidence interval
+#' bootsens.os(A, X1, Y, parallel = FALSE) # confidence interval
 #'
 #' ## Sensitivity analysis (gamma = 1, i.e. Gamma = e^1)
 #' extrema.os(A, X1, Y, gamma = 1) # point estimate
-#' bootsens.os(A, X1, Y, gamma = 1) # confidence interval
+#' bootsens.os(A, X1, Y, gamma = 1, parallel = FALSE) # confidence interval
 #'
 #' ## Sensitivity analysis using regression adjustment (gamma = 1, i.e. Gamma = e^1)
 #' extrema.os(A, X1, Y, gamma = 1, reg.adjust = TRUE) # point estimate
-#' bootsens.os(A, X1, Y, gamma = 1, reg.adjust = TRUE) # confidence interval
+#' bootsens.os(A, X1, Y, gamma = 1, reg.adjust = TRUE, parallel = FALSE) # confidence interval
+#'
+#' ## Reproduce the results for matching
+#' d <- nhanes.log2diff()$o.LBXTHG
+#' require(sensitivitymw)
+#' senmwCI(d, gamma = exp(1), alpha = 0.1, one.sided = FALSE)
 #' }
 #'
-bootsens.os <- function(A, X, Y, gamma = 0, alpha = 0.05, estimand = c("ate", "att"), reg.adjust = FALSE, parallel = TRUE, B = 1000, warm.start = FALSE) {
+bootsens.os <- function(A, X, Y, gamma = 0, alpha = 0.05, estimand = c("ate", "att"), reg.adjust = FALSE, parallel = FALSE, B = 1000, warm.start = FALSE) {
 
     estimand <- match.arg(estimand, c("ate", "att"))
 
@@ -164,6 +185,7 @@ extrema.md <- function(A, X, Y, gamma = 0, estimand = c("all", "missing"), reg.a
 
     estimand <- match.arg(estimand, c("all", "missing"))
     ps.model <- glm(A ~ X, family = "binomial", start = start)
+
     fitted.prob <- predict(ps.model, type = "response")
     if (reg.adjust) {
         df <- data.frame(Y = Y, X = X)
@@ -175,6 +197,7 @@ extrema.md <- function(A, X, Y, gamma = 0, estimand = c("all", "missing"), reg.a
 
     out <- get.extrema(A, X, Y - Y.fitted, gamma, fitted.prob, estimand)
     out <- out + switch(estimand, all = mean(Y.fitted), missing = mean(Y.fitted[A == 0]))
+    out
 
 }
 

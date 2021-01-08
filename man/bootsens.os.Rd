@@ -5,11 +5,28 @@
 \alias{extrema.os}
 \title{Sensitivity analysis for observational studies}
 \usage{
-bootsens.os(A, X, Y, gamma = 0, alpha = 0.05, estimand = c("ate", "att"),
-  reg.adjust = FALSE, parallel = TRUE, B = 1000, warm.start = FALSE)
+bootsens.os(
+  A,
+  X,
+  Y,
+  gamma = 0,
+  alpha = 0.05,
+  estimand = c("ate", "att"),
+  reg.adjust = FALSE,
+  parallel = FALSE,
+  B = 1000,
+  warm.start = FALSE
+)
 
-extrema.os(A, X, Y, gamma = 0, estimand = c("ate", "att"),
-  reg.adjust = FALSE, start = NULL)
+extrema.os(
+  A,
+  X,
+  Y,
+  gamma = 0,
+  estimand = c("ate", "att"),
+  reg.adjust = FALSE,
+  start = NULL
+)
 }
 \arguments{
 \item{A}{Indicator of missingness}
@@ -62,15 +79,20 @@ Y <- log2(nhanes.fish$o.LBXTHG)
 
 ## Assuming no unmeasure confounder (i.e. gamma = 0 or Gamma = e^0 = 1)
 extrema.os(A, X1, Y) # point estimate
-bootsens.os(A, X1, Y) # confidence interval
+bootsens.os(A, X1, Y, parallel = FALSE) # confidence interval
 
 ## Sensitivity analysis (gamma = 1, i.e. Gamma = e^1)
 extrema.os(A, X1, Y, gamma = 1) # point estimate
-bootsens.os(A, X1, Y, gamma = 1) # confidence interval
+bootsens.os(A, X1, Y, gamma = 1, parallel = FALSE) # confidence interval
 
 ## Sensitivity analysis using regression adjustment (gamma = 1, i.e. Gamma = e^1)
 extrema.os(A, X1, Y, gamma = 1, reg.adjust = TRUE) # point estimate
-bootsens.os(A, X1, Y, gamma = 1, reg.adjust = TRUE) # confidence interval
+bootsens.os(A, X1, Y, gamma = 1, reg.adjust = TRUE, parallel = FALSE) # confidence interval
+
+## Reproduce the results for matching
+d <- nhanes.log2diff()$o.LBXTHG
+require(sensitivitymw)
+senmwCI(d, gamma = exp(1), alpha = 0.1, one.sided = FALSE)
 }
 
 }

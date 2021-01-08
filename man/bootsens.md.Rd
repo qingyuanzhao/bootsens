@@ -5,12 +5,28 @@
 \alias{extrema.md}
 \title{Sensitivity analysis for missing data}
 \usage{
-bootsens.md(A, X, Y, gamma = 0, alpha = 0.05, estimand = c("all",
-  "missing"), reg.adjust = FALSE, parallel = TRUE, B = 1000,
-  warm.start = FALSE)
+bootsens.md(
+  A,
+  X,
+  Y,
+  gamma = 0,
+  alpha = 0.05,
+  estimand = c("all", "missing"),
+  reg.adjust = FALSE,
+  parallel = TRUE,
+  B = 1000,
+  warm.start = FALSE
+)
 
-extrema.md(A, X, Y, gamma = 0, estimand = c("all", "missing"),
-  reg.adjust = FALSE, start = NULL)
+extrema.md(
+  A,
+  X,
+  Y,
+  gamma = 0,
+  estimand = c("all", "missing"),
+  reg.adjust = FALSE,
+  start = NULL
+)
 }
 \arguments{
 \item{A}{Indicator of missingness}

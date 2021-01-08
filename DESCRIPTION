@@ -7,11 +7,12 @@ Authors@R: c(person("Qingyuan", "Zhao", email = "qingyzhao@gmail.com", role = c(
 Description: Implements a percentile bootstrap approach for sensitivity analysis of IPW estimators.
 Imports:
     stats,
-    parallel
+    parallel,
+    data.table
 Suggests:
     CrossScreening
 Depends:
     R (>= 2.10)
 License: GPL-3
-RoxygenNote: 6.0.1
+RoxygenNote: 7.1.1
 LazyData: true

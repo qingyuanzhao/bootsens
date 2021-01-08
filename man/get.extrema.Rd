@@ -19,6 +19,8 @@ get.extrema(A, X, Y, gamma = 0, fitted.prob, estimand = c("all", "missing"))
 \item{fitted.prob}{Fitted propensity score}
 
 \item{estimand}{Target estimand, either E[Y] ("all") or E[Y|A=0] ("missing")}
+
+\item{discrete}{Are the data (both X and Y) discrete?}
 }
 \value{
 Extrema (an interval) of the IPW estimator.
